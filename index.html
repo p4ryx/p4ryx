@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -117,7 +118,28 @@
     .banner-btn{padding:7px 16px;border-radius:20px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.18);color:#fff;font-size:12px;font-weight:600;text-decoration:none}
 
     .music-card{display:flex;align-items:center;gap:14px;padding:16px 18px}
-    .music-disc{width:45px;height:45px;border-radius:50%;background:linear-gradient(135deg, #9333ea, #3b82f6);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;box-shadow:0 0 15px rgba(147, 51, 234, 0.4)}
+    .music-disc{
+      width:45px;
+      height:45px;
+      border-radius:50%;
+      background:linear-gradient(135deg, #9333ea, #3b82f6);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      cursor:pointer;
+      box-shadow:0 0 15px rgba(147, 51, 234, 0.4);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .music-disc.playing {
+      animation: discPulse 1.2s infinite ease-in-out;
+    }
+    @keyframes discPulse {
+      0% { transform: scale(1); box-shadow: 0 0 15px rgba(147, 51, 234, 0.4); }
+      50% { transform: scale(1.08); box-shadow: 0 0 25px rgba(56, 239, 125, 0.8); }
+      100% { transform: scale(1); box-shadow: 0 0 15px rgba(147, 51, 234, 0.4); }
+    }
+
     .music-info{flex:1;min-width:0}
     .music-title{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .music-artist{font-size:12px;color:rgba(255,255,255,0.55);display:flex;align-items:center;gap:4px;margin-top:2px}
@@ -125,7 +147,71 @@
     .progress-bar{width:100%;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin-top:6px;overflow:hidden;cursor:pointer}
     .progress-fill{width:0%;height:100%;background:#a855f7;transition:width 0.05s linear}
 
-    .audio-control-fixed{position:fixed;top:20px;left:20px;z-index:20;width:38px;height:38px;border-radius:50%;background:rgba(20,20,24,0.6);border:1px solid rgba(255,255,255,0.15);color:#fff;display:none;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(10px)}
+    .audio-toggle-btn {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      z-index: 999;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 16px;
+      border-radius: 999px;
+      background: rgba(20, 20, 25, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      outline: none;
+      user-select: none;
+    }
+
+    .audio-toggle-btn.playing {
+      border-color: rgba(56, 239, 125, 0.6);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(56, 239, 125, 0.25);
+    }
+
+    .audio-toggle-btn:hover {
+      background: rgba(35, 35, 45, 0.85);
+      border-color: rgba(56, 239, 125, 0.8);
+      transform: translateY(-2px) scale(1.03);
+    }
+
+    .audio-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2.5px;
+      height: 12px;
+      width: 14px;
+    }
+
+    .audio-bar {
+      width: 2.5px;
+      background: #aaa;
+      border-radius: 1px;
+      height: 4px;
+      transition: height 0.2s ease;
+    }
+
+    .audio-toggle-btn.playing .audio-bar {
+      background: #38ef7d;
+      animation: soundWave 0.8s infinite ease-in-out alternate;
+    }
+
+    .audio-toggle-btn.playing .audio-bar:nth-child(1) { animation-delay: 0s; }
+    .audio-toggle-btn.playing .audio-bar:nth-child(2) { animation-delay: 0.3s; }
+    .audio-toggle-btn.playing .audio-bar:nth-child(3) { animation-delay: 0.15s; }
+
+    @keyframes soundWave {
+      0% { height: 3px; }
+      100% { height: 12px; }
+    }
   </style>
 </head>
 <body>
@@ -142,9 +228,14 @@
     <source src="Wrong Times.mp3" type="audio/mpeg">
   </audio>
 
-  <div class="audio-control-fixed" id="audioControl" onclick="togglePlay()">
-    <i class="fas fa-volume-up" id="audioIcon"></i>
-  </div>
+  <button class="audio-toggle-btn" id="audioControl" onclick="togglePlay()">
+    <div class="audio-bars">
+      <div class="audio-bar"></div>
+      <div class="audio-bar"></div>
+      <div class="audio-bar"></div>
+    </div>
+    <span id="audioText">Audio</span>
+  </button>
 
   <div class="viewport">
     <div class="container" id="mainContent">
@@ -194,7 +285,7 @@
       </div>
 
       <div class="glass-card music-card">
-        <div class="music-disc" onclick="togglePlay()"><i class="fas fa-play" id="playIcon" style="font-size:13px;color:#fff"></i></div>
+        <div class="music-disc" id="musicDisc" onclick="togglePlay()"><i class="fas fa-play" id="playIcon" style="font-size:13px;color:#fff"></i></div>
         <div class="music-info">
           <div class="music-title" id="trackTitle"></div>
           <div class="music-artist"><i class="fas fa-volume-up" style="font-size:10px"></i> Audio Track</div>
@@ -206,9 +297,21 @@
   </div>
 
   <script>
-    let audioPlaying = false;
     const $ = id => document.getElementById(id);
     const audio = $('backgroundAudio');
+
+    function updateUI(isPlaying) {
+      $('playIcon').className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+      $('audioText').textContent = isPlaying ? 'Playing' : 'Muted';
+      
+      if(isPlaying) {
+        $('audioControl').classList.add('playing');
+        $('musicDisc').classList.add('playing');
+      } else {
+        $('audioControl').classList.remove('playing');
+        $('musicDisc').classList.remove('playing');
+      }
+    }
 
     function startTypingEffect() {
       const text = "𝘕𝘨𝘶𝘺𝘦𝘯 𝘘𝘶𝘰𝘤 𝘊𝘶𝘰𝘯𝘨";
@@ -258,28 +361,18 @@
       setupTrackName();
       $('introScreen').classList.add('hidden');
       $('mainContent').style.display = 'flex';
-      $('audioControl').style.display = 'flex';
+      $('audioControl').style.display = 'inline-flex';
       startTypingEffect();
       audio.volume = 0.5;
-      audio.play().then(() => {
-        audioPlaying = true;
-        $('playIcon').className = 'fas fa-pause';
-        $('audioIcon').className = 'fas fa-volume-up';
-      }).catch(() => audioPlaying = false);
+      audio.play().catch(e => console.log('Autoplay blocked:', e));
     }
 
     function togglePlay(){
-      if(audioPlaying){
+      if(!audio.paused){
         audio.pause();
-        $('playIcon').className = 'fas fa-play';
-        $('audioIcon').className = 'fas fa-volume-mute';
       } else {
-        audio.play().then(() => {
-          $('playIcon').className = 'fas fa-pause';
-          $('audioIcon').className = 'fas fa-volume-up';
-        }).catch(e => console.log('Play error', e));
+        audio.play().catch(e => console.log('Play error:', e));
       }
-      audioPlaying = !audioPlaying;
     }
 
     function seekAudio(e){
@@ -290,6 +383,9 @@
         audio.currentTime = pos * audio.duration;
       }
     }
+
+    audio.onplay = () => updateUI(true);
+    audio.onpause = () => updateUI(false);
 
     audio.onloadedmetadata = () => {
       $('timeDisplay').textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
@@ -303,13 +399,10 @@
       }
     };
 
-    audio.onended = () => {
-      audioPlaying = false;
-      $('playIcon').className = 'fas fa-play';
-      $('audioIcon').className = 'fas fa-volume-mute';
-    };
+    audio.onended = () => updateUI(false);
 
     document.addEventListener('DOMContentLoaded', setupTrackName);
   </script>
 </body>
 </html>
+
